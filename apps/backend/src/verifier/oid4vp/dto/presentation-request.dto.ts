@@ -32,6 +32,7 @@ interface PresentationRequestData {
     transaction_data?: z.infer<typeof TransactionDataSchema>[];
     skewSeconds?: number;
     clientIdScheme?: ClientIdSchemeValue;
+    nonce?: string;
     reference?: string;
 }
 
@@ -92,6 +93,15 @@ export class PresentationRequest
         default: ClientIdScheme.X509_HASH,
     })
     clientIdScheme?: ClientIdSchemeValue;
+
+    /** Optional caller-supplied nonce; EUDIPLO generates one when omitted. */
+    @ApiPropertyOptional({
+        description:
+            "Optional caller-supplied OID4VP nonce. If omitted, EUDIPLO generates one.",
+        minLength: 1,
+        maxLength: 256,
+    })
+    nonce?: string;
 
     /**
      * Caller reference stored with the session, e.g. an order or case id.
