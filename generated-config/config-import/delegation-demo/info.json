@@ -1,0 +1,8 @@
+{
+  "$schema": "https://eudiplo.dev/schemas/v1/TenantConfigFile.schema.json",
+  "metadata": { "generation": 1 },
+  "spec": {
+    "name": "Delegation Demo Tenant",
+    "description": "Generated config bundle used to validate these examples."
+  }
+}

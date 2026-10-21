@@ -1,0 +1,10 @@
+{
+  "display": [
+    { "name": "Delegation Service", "locale": "en-US" }
+  ],
+  "authorizationServers": [
+    { "type": "built-in", "id": "delegation-issuer" }
+  ],
+  "batchSize": 1,
+  "dPopRequired": true
+}

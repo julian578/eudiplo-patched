@@ -115,6 +115,7 @@ export class VerifierOfferController {
                 transaction_data: body.transaction_data,
                 skewSeconds: body.skewSeconds,
                 clientIdScheme: body.clientIdScheme,
+                nonce: body.nonce,
                 reference: body.reference,
             },
             user.entity!.id,

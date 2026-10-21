@@ -1,0 +1,10 @@
+{
+  "$schema": "https://eudiplo.dev/schemas/v1/IssuanceConfigFile.schema.json",
+  "metadata": { "generation": 1 },
+  "spec": {
+    "display": [{ "name": "Delegation Service", "locale": "en-US" }],
+    "authorizationServers": [{ "type": "built-in", "id": "delegation-issuer" }],
+    "batchSize": 1,
+    "dPopRequired": true
+  }
+}

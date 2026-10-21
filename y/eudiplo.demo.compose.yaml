@@ -1,0 +1,184 @@
+# EUDIPLO Docker Compose - Multi-Profile Deployment
+#
+# Usage:
+#   docker compose up                              # Minimal: just EUDIPLO (SQLite, local storage)
+#   docker compose --profile standard up           # Standard: + Postgres + RustFS
+#   docker compose --profile full up               # Full: + Postgres + RustFS + Vault
+#   docker compose --profile postgres --profile s3 up  # Custom components
+#
+# For more information, see the documentation:
+# https://docs.eudiplo.dev/operate/docker-compose/
+
+services:
+  # =============================================================================
+  # CORE SERVICES (always run)
+  # =============================================================================
+
+  eudiplo:
+    image: ${EUDIPLO_IMAGE:-ghcr.io/eudiplo/eudiplo:latest}
+    restart: always
+    env_file:
+      - ${EUDIPLO_ENV_FILE:-.env}
+    ports:
+      - '${EUDIPLO_BIND_ADDRESS:-0.0.0.0}:3000:3000'
+    volumes:
+      - ${EUDIPLO_CONFIG_MOUNT:-eudiplo-config:/app/config}
+      - eudiplo-uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+      rustfs-init:
+        condition: service_completed_successfully
+        required: false
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - eudiplo-network
+
+  eudiplo-client:
+    image: ${EUDIPLO_CLIENT_IMAGE:-ghcr.io/eudiplo/eudiplo-client:latest}
+    restart: always
+    ports:
+      - '${EUDIPLO_BIND_ADDRESS:-0.0.0.0}:4200:8080'
+    depends_on:
+      eudiplo:
+        condition: service_healthy
+    environment:
+      # Used by the browser only, to prefill the backend URL on the login page.
+      - API_BASE_URL=${API_BASE_URL:-http://localhost:3000}
+      # Subpath behind a reverse proxy, for example /eudiplo-client/
+      - CLIENT_BASE_HREF=${CLIENT_BASE_HREF:-/}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO', '/dev/null', 'http://localhost:8080']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - eudiplo-network
+
+  # =============================================================================
+  # STANDARD PROFILE: PostgreSQL + RustFS
+  # =============================================================================
+
+  postgres:
+    image: postgres:16
+    restart: always
+    profiles: ['postgres', 'standard', 'full']
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-eudiplo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_DATABASE:-eudiplo}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${DB_USERNAME:-eudiplo} -d ${DB_DATABASE:-eudiplo}',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eudiplo-network
+
+  rustfs:
+    image: rustfs/rustfs:1.0.0
+    restart: always
+    profiles: ['s3', 'standard', 'full']
+    ports:
+      - '${EUDIPLO_BIND_ADDRESS:-0.0.0.0}:9000:9000'
+      - '${EUDIPLO_BIND_ADDRESS:-0.0.0.0}:9001:9001'
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfsadmin}
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - rustfs-data:/data
+    command: ["/data"]
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/health/ready']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - eudiplo-network
+
+  # S3 bucket initialization using the AWS CLI
+  rustfs-init:
+    image: amazon/aws-cli:2.37.4
+    profiles: ['s3', 'standard', 'full']
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:-rustfsadmin}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_CONFIG_FILE: /tmp/aws-config
+      S3_BUCKET: ${S3_BUCKET:-uploads}
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        set -eu
+        aws configure set default.s3.addressing_style path
+        s3() { aws --endpoint-url http://rustfs:9000 s3api "$$@"; }
+        s3 head-bucket --bucket "$$S3_BUCKET" 2>/dev/null || s3 create-bucket --bucket "$$S3_BUCKET"
+        printf '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/*"]}]}' "$$S3_BUCKET" > /tmp/bucket-policy.json
+        s3 put-bucket-policy --bucket "$$S3_BUCKET" --policy file:///tmp/bucket-policy.json
+        echo 'Bucket initialized successfully'
+    networks:
+      - eudiplo-network
+
+  # =============================================================================
+  # FULL PROFILE: + HashiCorp Vault
+  # =============================================================================
+
+  # Development mode: Vault keeps all data in memory, so the encryption key and
+  # any signing keys in it are lost when the container restarts. Nothing creates
+  # the encryption key, see
+  # https://docs.eudiplo.dev/operate/docker-compose#create-the-encryption-key-for-full
+  vault:
+    image: hashicorp/vault:latest
+    restart: always
+    profiles: ['vault', 'full']
+    ports:
+      - '${EUDIPLO_BIND_ADDRESS:-0.0.0.0}:8200:8200'
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN:-root}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_API_ADDR: http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault-data:/vault/data
+      - vault-logs:/vault/logs
+    command: vault server -dev -dev-listen-address=0.0.0.0:8200
+    networks:
+      - eudiplo-network
+
+networks:
+  eudiplo-network:
+    driver: bridge
+
+volumes:
+  eudiplo-config:
+    driver: local
+  eudiplo-uploads:
+    driver: local
+  postgres-data:
+    driver: local
+  rustfs-data:
+    driver: local
+  vault-data:
+    driver: local
+  vault-logs:
+    driver: local

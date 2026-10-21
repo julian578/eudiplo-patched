@@ -57,6 +57,14 @@ export const PresentationRequestSchema = z
             .describe(
                 "OID4VP client identifier scheme; defaults to x509_hash.",
             ),
+        nonce: z
+            .string()
+            .min(1)
+            .max(256)
+            .optional()
+            .describe(
+                "Optional caller-supplied OID4VP nonce. If omitted, EUDIPLO generates one.",
+            ),
         reference: z
             .string()
             .trim()

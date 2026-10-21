@@ -1,0 +1,29 @@
+{
+  "$schema": "https://eudiplo.dev/schemas/v1/PresentationConfigFile.schema.json",
+  "metadata": { "generation": 1 },
+  "spec": {
+    "id": "pid-enrollment",
+    "description": "Enrollment proof request for the owner's PID.",
+    "dcql_query": {
+      "credentials": [
+        {
+          "id": "pid-sd-jwt",
+          "format": "dc+sd-jwt",
+          "meta": { "vct_values": ["REPLACE_WITH_REFERENCE_WALLET_PID_VCT"] },
+          "trusted_authorities": [{ "type": "etsi_tl", "values": [{ "trustListId": "REPLACE_WITH_PID_ISSUER_TRUST_LIST_ID" }] }]
+        },
+        {
+          "id": "pid-mdoc",
+          "format": "mso_mdoc",
+          "meta": { "doctype_value": "eu.europa.ec.eudi.pid.1" },
+          "trusted_authorities": [{ "type": "etsi_tl", "values": [{ "trustListId": "REPLACE_WITH_PID_ISSUER_TRUST_LIST_ID" }] }]
+        }
+      ],
+      "credential_sets": [
+        { "options": [["pid-sd-jwt"], ["pid-mdoc"]] }
+      ]
+    },
+    "lifeTime": 300,
+    "accessKeyChainId": "REPLACE_WITH_VERIFIER_ACCESS_KEY_CHAIN_ID"
+  }
+}

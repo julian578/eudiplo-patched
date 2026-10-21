@@ -1,0 +1,27 @@
+{
+  "$schema": "https://eudiplo.dev/schemas/v1/PresentationConfigFile.schema.json",
+  "metadata": { "generation": 1 },
+  "spec": {
+    "id": "agent-delegation-verification",
+    "description": "Verify an agent's delegation before authorizing token use.",
+    "dcql_query": {
+      "credentials": [
+        {
+          "id": "agent_delegation",
+          "format": "dc+sd-jwt",
+          "meta": { "vct_values": ["https://delegations.example/vct/agent-delegation"] },
+          "claims": [
+            { "path": ["delegation_id"] },
+            { "path": ["resource"] },
+            { "path": ["scopes"] },
+            { "path": ["consent_hash"] },
+            { "path": ["delegator"] }
+          ],
+          "trusted_authorities": [{ "type": "etsi_tl", "values": [{ "trustListId": "REPLACE_WITH_DELEGATION_ISSUER_TRUST_LIST_ID" }] }]
+        }
+      ]
+    },
+    "lifeTime": 300,
+    "accessKeyChainId": "REPLACE_WITH_VERIFIER_ACCESS_KEY_CHAIN_ID"
+  }
+}

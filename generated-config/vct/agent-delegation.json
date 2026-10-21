@@ -1,0 +1,5 @@
+{
+  "vct": "https://delegations.example/vct/agent-delegation",
+  "name": "Agent delegation",
+  "description": "A short-lived, owner-authorized set of permissions bound to an agent holder key."
+}

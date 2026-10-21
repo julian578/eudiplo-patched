@@ -1,0 +1,20 @@
+{
+  "$schema": "https://eudiplo.dev/schemas/v1/PresentationConfigFile.schema.json",
+  "metadata": { "generation": 1 },
+  "spec": {
+    "id": "delegation-auth-authorization",
+    "description": "Owner approves the exact delegation transaction in the wallet.",
+    "dcql_query": {
+      "credentials": [
+        {
+          "id": "credential_1",
+          "format": "dc+sd-jwt",
+          "meta": { "vct_values": ["https://delegations.example/vct/delegation-auth"] },
+          "trusted_authorities": [{ "type": "etsi_tl", "values": [{ "trustListId": "REPLACE_WITH_DELEGATION_ISSUER_TRUST_LIST_ID" }] }]
+        }
+      ]
+    },
+    "lifeTime": 300,
+    "accessKeyChainId": "REPLACE_WITH_VERIFIER_ACCESS_KEY_CHAIN_ID"
+  }
+}

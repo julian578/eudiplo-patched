@@ -1,0 +1,10 @@
+{
+    "defaultProvider": "db",
+    "providers": [
+        {
+            "id": "db",
+            "type": "db",
+            "description": "Database-backed key provider"
+        }
+    ]
+}

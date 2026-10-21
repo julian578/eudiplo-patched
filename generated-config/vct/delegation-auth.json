@@ -1,0 +1,5 @@
+{
+  "vct": "https://delegations.example/vct/delegation-auth",
+  "name": "Delegation authorization",
+  "description": "Owner device enrollment and possession credential. No PID attributes are contained."
+}

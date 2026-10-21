@@ -1,0 +1,23 @@
+{
+  "response_type": "uri",
+  "requestId": "delegation-auth-authorization",
+  "clientIdScheme": "x509_hash",
+  "reference": "REPLACE_WITH_NON_PERSONAL_DELEGATION_REFERENCE",
+  "transaction_data": [
+    {
+      "type": "urn:example:agent-delegation:1",
+      "credential_ids": ["credential_1"],
+      "delegation_id": "REPLACE_WITH_DELEGATION_ID",
+      "agent_key_thumbprint": "REPLACE_WITH_AGENT_RFC7638_JWK_THUMBPRINT",
+      "agent_label": "Invoice Assistant",
+      "resource": "google_calendar",
+      "scopes": ["calendar.events.read"],
+      "not_after": "2026-10-21T12:00:00Z"
+    }
+  ],
+  "webhook": {
+    "url": "https://YOUR_BACKEND.example/eudiplo/presentation-result",
+    "auth": { "type": "apiKey", "config": { "headerName": "x-api-key", "value": "REPLACE_WITH_WEBHOOK_SECRET" } },
+    "includeRawTokensFor": ["credential_1"]
+  }
+}

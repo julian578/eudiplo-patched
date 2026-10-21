@@ -109,6 +109,7 @@ export type PresentationRequestOptions = Pick<
     | "transaction_data"
     | "skewSeconds"
     | "clientIdScheme"
+    | "nonce"
     | "reference"
 > & {
     session?: string;

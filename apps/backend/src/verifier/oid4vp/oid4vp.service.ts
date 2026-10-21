@@ -318,7 +318,9 @@ export class Oid4vpService {
                         cert,
                     );
             }
-            const nonce = randomUUID();
+            // Preserve a caller-supplied nonce (for example, a relying-party
+            // commitment nonce). Otherwise generate the usual per-request nonce.
+            const nonce = session.vp_nonce ?? randomUUID();
             await this.sessionStore.updateForTenant(
                 session.tenantId,
                 session.id,
@@ -573,6 +575,7 @@ export class Oid4vpService {
                     values.skewSeconds ??
                     presentationConfig.skewSeconds ??
                     DEFAULT_VERIFIER_SKEW_SECONDS,
+                vp_nonce: values.nonce,
             });
 
             if (request_uri_method === "get") {
