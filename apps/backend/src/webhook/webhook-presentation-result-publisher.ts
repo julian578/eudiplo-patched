@@ -19,7 +19,14 @@ export class WebhookPresentationResultPublisher
         const response = await this.webhooks.sendWebhook({
             webhook: values.webhook,
             session: values.session,
-            result: { status: values.status, outcome: values.outcome },
+            result: {
+                status: values.status,
+                outcome: values.outcome,
+                ...(values.status === SessionStatus.Completed &&
+                values.responseCode
+                    ? { response_code: values.responseCode }
+                    : {}),
+            },
             // Failure results never carry credentials or raw tokens.
             ...(values.status === SessionStatus.Completed
                 ? {

@@ -50,6 +50,7 @@ export class ProcessVerifiedPresentation {
                     session,
                     status: SessionStatus.Completed,
                     outcome,
+                    responseCode: input.responseCode,
                     credentials: input.credentials,
                     rawPresentationPayload: input.rawPresentationPayload,
                 });

@@ -71,6 +71,7 @@ describe("presentation completion and publication", () => {
                 result: "success",
                 credentials: [{ id: "pid", verified: true }],
             },
+            responseCode: "code",
             credentials: input.credentials,
             rawPresentationPayload: input.rawPresentationPayload,
         });

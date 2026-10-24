@@ -56,6 +56,7 @@ export interface WebhookResponse {
 interface PresentationWebhookResult {
     status: string;
     outcome: SessionOutcome;
+    response_code?: string;
 }
 
 /**
@@ -281,6 +282,7 @@ export class WebhookService {
                 ? {
                       status: values.result.status,
                       outcome: values.result.outcome,
+                      response_code: values.result.response_code,
                   }
                 : {}),
             credentials: payloadCredentials,

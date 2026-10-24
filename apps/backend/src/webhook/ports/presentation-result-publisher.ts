@@ -15,6 +15,7 @@ export interface PresentationResult {
 export type PresentationResultReport = { outcome: SessionOutcome } & (
     | {
           status: SessionStatus.Completed;
+          responseCode?: string;
           credentials?: unknown[];
           rawPresentationPayload?: unknown;
       }
