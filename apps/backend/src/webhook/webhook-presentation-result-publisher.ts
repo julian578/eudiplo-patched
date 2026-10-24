@@ -16,8 +16,20 @@ export class WebhookPresentationResultPublisher
     async publish(
         values: PresentationResultPublication,
     ): Promise<PresentationResult> {
+        const webhook =
+            values.status === SessionStatus.Completed
+                ? {
+                      ...values.webhook,
+                      includeRawTokensFor: (
+                          values.credentials as
+                              | Array<{ id: string }>
+                              | undefined
+                      )?.map((credential) => credential.id),
+                  }
+                : values.webhook;
+
         const response = await this.webhooks.sendWebhook({
-            webhook: values.webhook,
+            webhook,
             session: values.session,
             result: {
                 status: values.status,
