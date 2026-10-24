@@ -319,6 +319,28 @@ export class WebhookService {
         );
     }
 
+    /** Sends the public holder key for a freshly issued credential. */
+    sendCredentialIssuedWebhook(
+        webhook: WebhookConfig,
+        session: Session,
+        credentialConfigurationId: string,
+        cnfJwk: Record<string, unknown>,
+    ) {
+        return this.postSessionEvent(
+            webhook,
+            session,
+            {
+                event: "credential_issued",
+                registration_id: session.reference,
+                credentialConfigurationId,
+                cnf_jwk: cnfJwk,
+                session: session.id,
+                ...referenceOf(session),
+            },
+            "credential issued webhook",
+        );
+    }
+
     /**
      * Tells the session webhook that an operator cancelled the offer, with
      * `status: "cancelled"` like the status of a presentation result.

@@ -16,6 +16,7 @@ import {
 } from "@openid4vc/openid4vci";
 import { Span, TraceService } from "nestjs-otel";
 import { v4 } from "uuid";
+import { decodeJwt } from "jose";
 import { EncryptionService } from "../../../crypto/encryption/encryption.service.js";
 import { ChangeSessionState } from "../../../session/application/change-session-state.js";
 import { SessionNotFound } from "../../../session/application/session-errors.js";
@@ -574,6 +575,45 @@ export class Oid4vciService {
                 SessionStatus.Fetched,
             );
 
+            // Report only the public cnf.jwk used by the issued credential.
+            // This lets relying parties bind later presentation requests
+            // without exposing the credential or proof JWT in a webhook.
+            if (session.reference && session.webhookEndpointId) {
+                for (const { credential } of credentials) {
+                    try {
+                        const issuerJwt = credential.split("~", 1)[0];
+                        const payload = decodeJwt(issuerJwt) as {
+                            cnf?: { jwk?: Record<string, unknown> };
+                        };
+                        const cnfJwk = payload.cnf?.jwk;
+                        if (!cnfJwk || hasPrivateJwkMaterial(cnfJwk)) {
+                            this.logger.warn(
+                                { sessionId: session.id, credentialConfigurationId },
+                                "Issued credential has no public cnf.jwk to report",
+                            );
+                            continue;
+                        }
+                        const publication =
+                            await this.handleCredentialNotification.publishCredentialIssued(
+                                session,
+                                credentialConfigurationId,
+                                cnfJwk,
+                            );
+                        if (publication.publicationFailed) {
+                            this.logger.warn(
+                                { sessionId: session.id, credentialConfigurationId },
+                                "Credential-issued webhook delivery failed",
+                            );
+                        }
+                    } catch (error) {
+                        this.logger.warn(
+                            { sessionId: session.id, credentialConfigurationId, error },
+                            "Could not report the issued credential holder key",
+                        );
+                    }
+                }
+            }
+
             this.auditLogger.logFlowComplete(logContext, {
                 credentialsIssued: credentials.length,
                 notificationId,
@@ -740,6 +780,12 @@ export class Oid4vciService {
             issuerMetadata,
         );
     }
+}
+
+function hasPrivateJwkMaterial(jwk: Record<string, unknown>): boolean {
+    return ["d", "p", "q", "dp", "dq", "qi", "oth", "k"].some(
+        (member) => member in jwk,
+    );
 }
 
 /** Authorization-server configuration and discovery problems are client errors. */

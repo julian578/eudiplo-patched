@@ -14,4 +14,12 @@ export interface CredentialNotificationPublisher {
         session: SessionData,
         notification: Notification,
     ): Promise<void>;
+
+    /** Reports the public holder key from an issued credential to the offer webhook. */
+    publishCredentialIssued?(
+        configuration: WebhookConfiguration,
+        session: SessionData,
+        credentialConfigurationId: string,
+        cnfJwk: Record<string, unknown>,
+    ): Promise<void>;
 }

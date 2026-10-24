@@ -24,4 +24,18 @@ export class WebhookCredentialNotificationPublisher
             notification,
         );
     }
+
+    publishCredentialIssued(
+        configuration: WebhookConfiguration,
+        session: SessionData,
+        credentialConfigurationId: string,
+        cnfJwk: Record<string, unknown>,
+    ): Promise<void> {
+        return this.webhooks.sendCredentialIssuedWebhook(
+            configuration,
+            session,
+            credentialConfigurationId,
+            cnfJwk,
+        );
+    }
 }

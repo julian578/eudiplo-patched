@@ -58,4 +58,31 @@ export class HandleCredentialNotification {
             return { publicationFailed: true, publicationError };
         }
     }
+
+    /** Publishes the holder key after issuance, without including the credential token. */
+    async publishCredentialIssued(
+        session: SessionData,
+        credentialConfigurationId: string,
+        cnfJwk: Record<string, unknown>,
+    ): Promise<{ publicationFailed: boolean; publicationError?: unknown }> {
+        if (!session.reference) return { publicationFailed: false };
+        if (!this.publisher.publishCredentialIssued) {
+            return { publicationFailed: true, publicationError: new Error("Credential-issued webhook publishing is unavailable") };
+        }
+        const endpoint = session.webhookEndpointId
+            ? await this.endpoints.findForTenant(session.tenantId, session.webhookEndpointId)
+            : null;
+        if (!endpoint) return { publicationFailed: false };
+        try {
+            await this.publisher.publishCredentialIssued(
+                { url: endpoint.url, auth: endpoint.auth },
+                session,
+                credentialConfigurationId,
+                cnfJwk,
+            );
+            return { publicationFailed: false };
+        } catch (publicationError) {
+            return { publicationFailed: true, publicationError };
+        }
+    }
 }
