@@ -584,6 +584,8 @@ export class Oid4vciService {
                         const issuerJwt = credential.split("~", 1)[0];
                         const payload = decodeJwt(issuerJwt) as {
                             cnf?: { jwk?: Record<string, unknown> };
+                            jti?: string;
+                            status?: { status_list?: { idx?: number } };
                         };
                         const cnfJwk = payload.cnf?.jwk;
                         if (!cnfJwk || hasPrivateJwkMaterial(cnfJwk)) {
@@ -598,6 +600,7 @@ export class Oid4vciService {
                                 session,
                                 credentialConfigurationId,
                                 cnfJwk,
+                                { jti: payload.jti, statusIndex: payload.status?.status_list?.idx },
                             );
                         if (publication.publicationFailed) {
                             this.logger.warn(

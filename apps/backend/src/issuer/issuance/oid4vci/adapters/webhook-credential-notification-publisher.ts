@@ -30,12 +30,14 @@ export class WebhookCredentialNotificationPublisher
         session: SessionData,
         credentialConfigurationId: string,
         cnfJwk: Record<string, unknown>,
+        details?: { jti?: string; statusIndex?: number },
     ): Promise<void> {
         return this.webhooks.sendCredentialIssuedWebhook(
             configuration,
             session,
             credentialConfigurationId,
             cnfJwk,
+            details,
         );
     }
 }

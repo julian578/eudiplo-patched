@@ -21,5 +21,6 @@ export interface CredentialNotificationPublisher {
         session: SessionData,
         credentialConfigurationId: string,
         cnfJwk: Record<string, unknown>,
+        details?: { jti?: string; statusIndex?: number },
     ): Promise<void>;
 }

@@ -29,7 +29,7 @@ interface PresentationRequestData {
     webhook?: WebhookConfig;
     redirectUri?: string;
     expected_origin?: string;
-    transaction_data?: z.infer<typeof TransactionDataSchema>[];
+    transaction_data?: (z.infer<typeof TransactionDataSchema> | string)[];
     skewSeconds?: number;
     clientIdScheme?: ClientIdSchemeValue;
     nonce?: string;
@@ -77,7 +77,7 @@ export class PresentationRequest
      * If provided, this will override the transaction_data from the presentation configuration.
      */
     @ApiPropertyOptional({ type: () => [TransactionData] })
-    transaction_data?: z.infer<typeof TransactionDataSchema>[];
+    transaction_data?: (z.infer<typeof TransactionDataSchema> | string)[];
 
     /**
      * Optional clock skew tolerance for this presentation offer, in seconds.

@@ -64,6 +64,7 @@ export class HandleCredentialNotification {
         session: SessionData,
         credentialConfigurationId: string,
         cnfJwk: Record<string, unknown>,
+        details?: { jti?: string; statusIndex?: number },
     ): Promise<{ publicationFailed: boolean; publicationError?: unknown }> {
         if (!session.reference) return { publicationFailed: false };
         if (!this.publisher.publishCredentialIssued) {
@@ -79,6 +80,7 @@ export class HandleCredentialNotification {
                 session,
                 credentialConfigurationId,
                 cnfJwk,
+                details,
             );
             return { publicationFailed: false };
         } catch (publicationError) {

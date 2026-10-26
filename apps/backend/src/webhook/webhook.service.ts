@@ -327,6 +327,7 @@ export class WebhookService {
         session: Session,
         credentialConfigurationId: string,
         cnfJwk: Record<string, unknown>,
+        details?: { jti?: string; statusIndex?: number },
     ) {
         return this.postSessionEvent(
             webhook,
@@ -336,6 +337,8 @@ export class WebhookService {
                 registration_id: session.reference,
                 credentialConfigurationId,
                 cnf_jwk: cnfJwk,
+                ...(details?.jti ? { jti: details.jti } : {}),
+                ...(details?.statusIndex !== undefined ? { status_index: details.statusIndex } : {}),
                 session: session.id,
                 ...referenceOf(session),
             },

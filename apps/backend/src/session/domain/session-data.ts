@@ -42,6 +42,8 @@ export interface SessionOfferRequest {
     offerLifetimeSeconds?: number;
     /** Caller reference stored with the session; plaintext, never personal data. */
     reference?: string;
+    expectedKeyThumbprint?: string;
+    credentialExpiresAt?: number;
 }
 interface SessionTransactionData {
     type: string;
@@ -119,7 +121,7 @@ export interface SessionData {
     responseUri?: string;
     redirectUri?: string | null;
     parsedWebhook?: WebhookConfiguration;
-    transaction_data?: SessionTransactionData[];
+    transaction_data?: (SessionTransactionData | string)[];
     skewSeconds?: number;
     externalIssuer?: string;
     authorizationServerId?: string;

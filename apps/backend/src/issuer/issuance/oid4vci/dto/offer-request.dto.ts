@@ -27,6 +27,8 @@ interface OfferRequestData {
     webhookEndpointId?: string;
     offerLifetimeSeconds?: number;
     reference?: string;
+    expectedKeyThumbprint?: string;
+    credentialExpiresAt?: number;
 }
 
 type OfferRequestConstructor = new () => OfferRequestData;
@@ -188,6 +190,10 @@ export class OfferRequestDto
         example: "order-4711",
     })
     reference?: string;
+    @ApiPropertyOptional({ description: "RFC 7638 thumbprint required for the proof key used to issue this offer." })
+    expectedKeyThumbprint?: string;
+    @ApiPropertyOptional({ description: "Maximum credential expiration as a Unix timestamp in seconds." })
+    credentialExpiresAt?: number;
 }
 
 export class OfferResponse {

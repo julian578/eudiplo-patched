@@ -115,9 +115,27 @@ export const OfferRequestSchema = z
             .describe(
                 "Your own reference for this offer, e.g. an order or case id. Stored in plaintext, searchable in the session list, included in webhooks and kept when the session is anonymized. Must not contain personal data.",
             ),
+        expectedKeyThumbprint: z.string().min(20).max(128).optional().describe(
+            "Optional RFC 7638 thumbprint required for the credential proof key. The offer is rejected at issuance if the proof uses another key.",
+        ),
+        credentialExpiresAt: z.number().int().positive().optional().describe(
+            "Optional maximum credential expiration as a Unix timestamp in seconds.",
+        ),
     })
     .strict()
     .superRefine((data, ctx) => {
+        if (
+            data.expectedKeyThumbprint &&
+            (data.flow !== FlowType.PRE_AUTH_CODE ||
+                data.credentialConfigurationIds.length !== 1)
+        ) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["expectedKeyThumbprint"],
+                message:
+                    "A key-bound offer requires pre-authorized-code flow and exactly one credential configuration",
+            });
+        }
         if (!data.credentialClaims) {
             return;
         }

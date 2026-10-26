@@ -39,7 +39,7 @@ export const PresentationRequestSchema = z
             .optional()
             .describe("Expected browser origin for DC API key binding."),
         transaction_data: z
-            .array(TransactionDataSchema)
+            .array(z.union([TransactionDataSchema, z.string()]))
             .optional()
             .describe(
                 "Transaction data overriding the presentation configuration.",

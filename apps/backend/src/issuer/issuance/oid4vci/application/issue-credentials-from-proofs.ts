@@ -1,4 +1,5 @@
 import type { Jwk } from "@openid4vc/oauth2";
+import { calculateJwkThumbprint } from "jose";
 import type { SessionData } from "../../../../session/domain/session-data.js";
 import type { TrustListRef } from "../../../../trust/types.js";
 import { InvalidCredentialProof } from "../domain/credential-proof-errors.js";
@@ -40,6 +41,23 @@ export class IssueCredentialsFromProofs {
         for (const proof of command.proofs) {
             const verified = await verifier.verify(proof, command.proofType);
             const holderKeys = verified.holderKeys;
+            const expectedThumbprint = command.session.credentialPayload?.expectedKeyThumbprint;
+            if (expectedThumbprint) {
+                if (!Array.isArray(holderKeys) || holderKeys.length !== 1 || command.proofs.length !== 1) {
+                    throw new InvalidCredentialProof(
+                        "A key-bound offer requires exactly one proof and one holder key",
+                    );
+                }
+                const actualThumbprint = await calculateJwkThumbprint(
+                    holderKeys[0] as Parameters<typeof calculateJwkThumbprint>[0],
+                    "sha256",
+                );
+                if (actualThumbprint !== expectedThumbprint) {
+                    throw new InvalidCredentialProof(
+                        "Credential proof key does not match the thumbprint required by this offer",
+                    );
+                }
+            }
             if (command.proofType === "attestation") {
                 if (!Array.isArray(holderKeys) || holderKeys.length === 0)
                     throw new InvalidCredentialProof(

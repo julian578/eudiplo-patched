@@ -339,7 +339,7 @@ export class Oid4vpService {
                 (
                     session.transaction_data ??
                     presentationConfig.transaction_data
-                )?.map((td) => base64url.encode(JSON.stringify(td))) ||
+                )?.map((td) => typeof td === "string" ? td : base64url.encode(JSON.stringify(td))) ||
                 undefined;
 
             const { publicJwk: responseEncryptionPublicJwk, privateJwk } =

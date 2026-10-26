@@ -302,7 +302,7 @@ export class Session {
      * Can be overridden per-request from the presentation configuration.
      */
     @Column("json", { nullable: true })
-    transaction_data?: TransactionData[];
+    transaction_data?: (TransactionData | string)[];
 
     /**
      * Per-session clock skew tolerance for presentation credential JWT time validation.

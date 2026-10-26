@@ -89,7 +89,13 @@ export class SdjwtvcIssuerService {
             credentialConfiguration.lifeTime ?? 0,
         );
         // Set expiration time if lifeTime is defined
-        const exp = credentialConfiguration.lifeTime ? expiresAt : undefined;
+        const requestedExpiry = session.credentialPayload?.credentialExpiresAt;
+        if (requestedExpiry !== undefined && requestedExpiry <= iat) {
+            throw new Error("Credential expiration in the offer has already passed");
+        }
+        const exp = requestedExpiry !== undefined
+            ? Math.min(credentialConfiguration.lifeTime ? expiresAt : requestedExpiry, requestedExpiry)
+            : credentialConfiguration.lifeTime ? expiresAt : undefined;
 
         // If key binding is enabled, include the JWK in the cnf
         let cnf: { jwk: Jwk } | undefined;
